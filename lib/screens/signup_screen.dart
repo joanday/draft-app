@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'agreement_screen.dart';
-import 'home_screen.dart';
 import 'login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -23,7 +21,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isLoading = false;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _signUp() async {
     if (_emailCtrl.text.trim().isEmpty ||
@@ -45,20 +42,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final cred = await _auth.createUserWithEmailAndPassword(
+      await _auth.createUserWithEmailAndPassword(
         email: _emailCtrl.text.trim(),
         password: _passwordCtrl.text.trim(),
       );
 
-      // ── FIX: set agreed: false so AgreementScreen is shown first ──
-      await _firestore.collection('users').doc(cred.user!.uid).set({
-        'email': cred.user!.email,
-        'agreed': false,
-      });
-
       if (!mounted) return;
 
-      // ── FIX: route to AgreementScreen, not HomeScreen ──
+      // New users see the agreement first
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const AgreementScreen()),
