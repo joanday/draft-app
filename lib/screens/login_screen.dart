@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'agreement_screen.dart';
-import 'home_screen.dart';
+import 'student_main_nav_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -50,23 +49,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
       await _saveLoginLog(credential.user!);
 
-      final uid = credential.user!.uid;
-      final doc = await _firestore.collection('users').doc(uid).get();
-      bool agreed = doc.exists && doc['agreed'] == true;
-
       if (!mounted) return;
 
-      if (agreed) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AgreementScreen()),
-        );
-      }
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const StudentMainNavScreen()),
+      );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? e.code)),
@@ -333,7 +321,6 @@ class _LogoPainter extends CustomPainter {
     final cy = size.height / 2;
     final r = size.width / 2;
 
-    // Outer arc (gold)
     final arcPaint = Paint()
       ..color = const Color(0xFFB8960C)
       ..style = PaintingStyle.stroke
@@ -347,7 +334,6 @@ class _LogoPainter extends CustomPainter {
       arcPaint,
     );
 
-    // Background circle
     final bgPaint = Paint()
       ..color = const Color(0xFF1A3528)
       ..style = PaintingStyle.fill;
@@ -365,12 +351,10 @@ class _LogoPainter extends CustomPainter {
       ..color = const Color(0xFF4CAF50).withOpacity(0.85)
       ..style = PaintingStyle.fill;
 
-    // Head
     final headR = r * 0.22;
     final headCy = cy - r * 0.18;
     canvas.drawCircle(Offset(cx, headCy), headR, silPaint);
 
-    // Hair
     final hairPath = Path();
     hairPath.moveTo(cx - headR * 0.6, headCy - headR * 0.8);
     hairPath.cubicTo(
@@ -391,7 +375,6 @@ class _LogoPainter extends CustomPainter {
     );
     canvas.drawPath(hairPath, silPaint);
 
-    // Body
     final path = Path();
     path.moveTo(cx - r * 0.38, cy + r * 0.55);
     path.quadraticBezierTo(cx - r * 0.2, cy + r * 0.1, cx, cy + r * 0.05);
