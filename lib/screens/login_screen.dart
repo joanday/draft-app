@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'student_main_nav_screen.dart';
+import 'devcom_dashboard_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,6 +31,16 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<String?> _getUserRole(String uid) async {
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        return doc.data()?['role'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   void _onLogin() async {
     if (_emailCtrl.text.trim().isEmpty || _passwordCtrl.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,10 +61,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const StudentMainNavScreen()),
-      );
+      // ── Role-based routing ────────────────────────────────────────────────
+      final role = await _getUserRole(credential.user!.uid);
+
+      if (!mounted) return;
+
+      if (role == 'officer' || role == 'moderator' || role == 'reviewer') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DevcomDashboardScreen()),
+        );
+      } else {
+        // Default: student
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const StudentMainNavScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? e.code)),
@@ -105,11 +128,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // ── Logo ──────────────────────────────────────────────────────
               Center(
-                child: SizedBox(
-                  width: 90,
-                  height: 90,
-                  child: CustomPaint(
-                    painter: _LogoPainter(),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/psaulogo.png',
+                    width: 110,
+                    height: 110,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -313,7 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ── Custom logo painter ──────────────────────────────────────────────────────
+// ── Custom logo painter ───────────────────────────────────────────────────────
 class _LogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

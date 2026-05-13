@@ -47,9 +47,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         password: _passwordCtrl.text.trim(),
       );
 
+      // ── Sign out immediately so main.dart StreamBuilder doesn't
+      //    auto-route to StudentMainNavScreen while we go to AgreementScreen
+      await _auth.signOut();
+
       if (!mounted) return;
 
-      // New users see the agreement first
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const AgreementScreen()),
@@ -86,11 +89,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
               // ── Logo ──────────────────────────────────────────────────────
               Center(
-                child: SizedBox(
-                  width: 90,
-                  height: 90,
-                  child: CustomPaint(
-                    painter: _LogoPainter(),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/psaulogo.png',
+                    width: 110,
+                    height: 110,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
@@ -297,7 +301,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-// ── Shared logo painter ──────────────────────────────────────────────────────
+// ── Shared logo painter ───────────────────────────────────────────────────────
 class _LogoPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

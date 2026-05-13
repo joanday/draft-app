@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../models/film.dart';
 import 'film_detail_screen.dart';
 import 'profile_screen.dart';
+import 'search_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,22 +28,61 @@ class _HomeScreenState extends State<HomeScreen> {
         slivers: [
           SliverAppBar(
             floating: true,
-            title: const Text('PSAUniFilms',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.greenPrime)),
-            actions: [
-              IconButton(
-                icon: const CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppTheme.bgCard,
-                    child: Icon(Icons.person_outline,
-                        size: 18, color: AppTheme.textPrimary)),
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const ProfileScreen())),
+            leading: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/psaulogo.png',
+                  fit: BoxFit.cover,
+                ),
               ),
-            ],
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('PSAUniFilms',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.greenPrime)),
+                Text('Student Films Showcase App',
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textMuted,
+                        fontWeight: FontWeight.w400)),
+              ],
+            ),
+            actions: const [],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(56),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SearchScreen()),
+                  ),
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppTheme.bgCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.borderColor),
+                    ),
+                    child: const Row(
+                      children: [
+                        SizedBox(width: 12),
+                        Icon(Icons.search, color: AppTheme.textMuted, size: 20),
+                        SizedBox(width: 8),
+                        Text('Search documentaries...',
+                            style: TextStyle(
+                                color: AppTheme.textMuted, fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           SliverToBoxAdapter(child: _buildFeatured()),
           SliverToBoxAdapter(

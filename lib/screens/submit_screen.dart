@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class SubmitScreen extends StatefulWidget {
   const SubmitScreen({super.key});
@@ -16,7 +17,36 @@ class _SubmitScreenState extends State<SubmitScreen> {
   String _selectedTheme = 'Environment';
   final List<String> _tags = ['sustainability', 'rural life', 'environment'];
 
+  // ── Video file state ───────────────────────────────────────────────────────
+  String? _videoFileName;
+  String? _videoFilePath;
+  int? _videoFileSize;
+
   final List<String> _steps = ['Upload Video', 'Metadata', 'Review', 'Submit'];
+
+  Future<void> _pickVideo() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.video,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      final file = result.files.first;
+      setState(() {
+        _videoFileName = file.name;
+        _videoFilePath = file.path;
+        _videoFileSize = file.size;
+      });
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,18 +74,13 @@ class _SubmitScreenState extends State<SubmitScreen> {
       ),
       body: Column(
         children: [
-          // Step indicator
           _buildStepIndicator(),
-
-          // Content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: _buildCurrentStep(),
             ),
           ),
-
-          // Bottom buttons
           _buildBottomButtons(),
         ],
       ),
@@ -79,11 +104,9 @@ class _SubmitScreenState extends State<SubmitScreen> {
                       height: 28,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isCompleted
+                        color: isCompleted || isActive
                             ? const Color(0xFF4CAF50)
-                            : isActive
-                                ? const Color(0xFF4CAF50)
-                                : const Color(0xFF1A2E22),
+                            : const Color(0xFF1A2E22),
                         border: Border.all(
                             color: isCompleted || isActive
                                 ? const Color(0xFF4CAF50)
@@ -161,18 +184,41 @@ class _SubmitScreenState extends State<SubmitScreen> {
             color: const Color(0xFF1A2E22),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-                color: Colors.white24, style: BorderStyle.solid, width: 1.5),
+                color: _videoFileName != null
+                    ? const Color(0xFF4CAF50)
+                    : Colors.white24,
+                style: BorderStyle.solid,
+                width: 1.5),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_upload_outlined,
-                  color: Colors.white38, size: 48),
+              Icon(
+                _videoFileName != null
+                    ? Icons.check_circle_outline
+                    : Icons.cloud_upload_outlined,
+                color: _videoFileName != null
+                    ? const Color(0xFF4CAF50)
+                    : Colors.white38,
+                size: 48,
+              ),
               const SizedBox(height: 12),
-              const Text('Drag and drop your video here',
-                  style: TextStyle(color: Colors.white54, fontSize: 13)),
-              const Text('or',
-                  style: TextStyle(color: Colors.white38, fontSize: 12)),
+              Text(
+                _videoFileName != null
+                    ? _videoFileName!
+                    : 'Drag and drop your video here',
+                style: TextStyle(
+                    color: _videoFileName != null
+                        ? Colors.white70
+                        : Colors.white54,
+                    fontSize: 13),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (_videoFileName == null)
+                const Text('or',
+                    style: TextStyle(color: Colors.white38, fontSize: 12)),
               const SizedBox(height: 8),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -183,8 +229,9 @@ class _SubmitScreenState extends State<SubmitScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                 ),
-                onPressed: () {},
-                child: const Text('Choose File'),
+                onPressed: _pickVideo,
+                child: Text(
+                    _videoFileName != null ? 'Change File' : 'Choose File'),
               ),
             ],
           ),
@@ -195,62 +242,68 @@ class _SubmitScreenState extends State<SubmitScreen> {
             textAlign: TextAlign.center),
         const SizedBox(height: 20),
 
-        // Upload progress (sample)
-        const Text('Upload Progress',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w500)),
-        const SizedBox(height: 10),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-              color: const Color(0xFF1A2E22),
-              borderRadius: BorderRadius.circular(10)),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network('https://picsum.photos/seed/upload/80/60',
-                    width: 60,
-                    height: 45,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                        width: 60, height: 45, color: const Color(0xFF0D1F17))),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Path of Sustainable Living.mp4',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 6),
-                    LinearProgressIndicator(
-                      value: 0.62,
-                      backgroundColor: Colors.white12,
-                      valueColor:
-                          const AlwaysStoppedAnimation(Color(0xFF4CAF50)),
-                      minHeight: 4,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text('Uploading... 742 MB / 1.2 GB',
-                        style: TextStyle(color: Colors.white38, fontSize: 11)),
-                  ],
+        // Selected file info
+        if (_videoFileName != null) ...[
+          const Text('Selected File',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500)),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+                color: const Color(0xFF1A2E22),
+                borderRadius: BorderRadius.circular(10)),
+            child: Row(
+              children: [
+                Container(
+                  width: 60,
+                  height: 45,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0D1F17),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Icon(Icons.video_file_outlined,
+                      color: Color(0xFF4CAF50), size: 28),
                 ),
-              ),
-              TextButton(
-                  onPressed: () {},
-                  child: const Text('Cancel',
-                      style:
-                          TextStyle(color: Color(0xFFE53935), fontSize: 12))),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_videoFileName!,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 4),
+                      Text(
+                        _videoFileSize != null
+                            ? _formatFileSize(_videoFileSize!)
+                            : 'Unknown size',
+                        style: const TextStyle(
+                            color: Colors.white38, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close,
+                      color: Color(0xFFE53935), size: 18),
+                  onPressed: () => setState(() {
+                    _videoFileName = null;
+                    _videoFilePath = null;
+                    _videoFileSize = null;
+                  }),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
+
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(10),
@@ -371,37 +424,41 @@ class _SubmitScreenState extends State<SubmitScreen> {
               borderRadius: BorderRadius.circular(10)),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network('https://picsum.photos/seed/review/100/70',
-                    width: 80,
-                    height: 55,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                        width: 80, height: 55, color: const Color(0xFF0D1F17))),
+              Container(
+                width: 80,
+                height: 55,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D1F17),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(Icons.video_file_outlined,
+                    color: Color(0xFF4CAF50), size: 32),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Path of Sustainable Living.mp4',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500)),
+                    Text(
+                      _videoFileName ?? 'No file selected',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                     const SizedBox(height: 4),
-                    Row(children: const [
-                      Icon(Icons.calendar_today_outlined,
-                          color: Colors.white38, size: 12),
-                      SizedBox(width: 4),
-                      Text('1.2 GB  •  04:32',
-                          style:
-                              TextStyle(color: Colors.white38, fontSize: 11)),
-                    ]),
+                    Text(
+                      _videoFileSize != null
+                          ? _formatFileSize(_videoFileSize!)
+                          : '',
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
                     const SizedBox(height: 4),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () => setState(() => _currentStep = 0),
                       child: const Text('Change File',
                           style: TextStyle(
                               color: Color(0xFF4CAF50),
@@ -429,19 +486,21 @@ class _SubmitScreenState extends State<SubmitScreen> {
                   style: TextStyle(
                       color: Colors.white38, fontSize: 11, letterSpacing: 1.2)),
               const SizedBox(height: 12),
-              _reviewRow('Title', 'Path of Sustainable Living'),
-              _reviewRow('Year', '2024'),
-              _reviewRow('Director', 'Juan Dela Cruz'),
+              _reviewRow(
+                  'Title', _titleCtrl.text.isEmpty ? '—' : _titleCtrl.text),
+              _reviewRow('Year', _selectedYear),
+              _reviewRow('Director',
+                  _directorCtrl.text.isEmpty ? '—' : _directorCtrl.text),
               _reviewRow('Synopsis',
-                  'This documentary explores how sustainable practices are transforming communities in rural areas.'),
-              _reviewRow('Theme', 'Environment'),
+                  _synopsisCtrl.text.isEmpty ? '—' : _synopsisCtrl.text),
+              _reviewRow('Theme', _selectedTheme),
               const SizedBox(height: 8),
               const Text('Tags',
                   style: TextStyle(color: Colors.white38, fontSize: 12)),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
-                children: ['sustainability', 'rural life', 'environment']
+                children: _tags
                     .map((t) => Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 3),
@@ -533,6 +592,13 @@ class _SubmitScreenState extends State<SubmitScreen> {
                     borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
+                if (_currentStep == 0 && _videoFileName == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Please select a video file first')),
+                  );
+                  return;
+                }
                 if (_currentStep < 2) {
                   setState(() => _currentStep++);
                 } else {
@@ -586,7 +652,12 @@ class _SubmitScreenState extends State<SubmitScreen> {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                setState(() => _currentStep = 0);
+                setState(() {
+                  _currentStep = 0;
+                  _videoFileName = null;
+                  _videoFilePath = null;
+                  _videoFileSize = null;
+                });
               },
               child: const Text('Done', style: TextStyle(color: Colors.white)),
             ),

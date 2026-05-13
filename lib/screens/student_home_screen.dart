@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class StudentHomeScreen extends StatefulWidget {
-  const StudentHomeScreen({super.key});
+  final VoidCallback? onSearchTap;
+  const StudentHomeScreen({super.key, this.onSearchTap});
 
   @override
   State<StudentHomeScreen> createState() => _StudentHomeScreenState();
@@ -78,22 +79,25 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Search bar
-                  Container(
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A2E22),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: const [
-                        SizedBox(width: 12),
-                        Icon(Icons.search, color: Colors.white38, size: 20),
-                        SizedBox(width: 8),
-                        Text('Search documentaries...',
-                            style:
-                                TextStyle(color: Colors.white38, fontSize: 13)),
-                      ],
+                  // ── Search bar ─────────────────────────────────────────
+                  GestureDetector(
+                    onTap: widget.onSearchTap,
+                    child: Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A2E22),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: const [
+                          SizedBox(width: 12),
+                          Icon(Icons.search, color: Colors.white38, size: 20),
+                          SizedBox(width: 8),
+                          Text('Search documentaries...',
+                              style: TextStyle(
+                                  color: Colors.white38, fontSize: 13)),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -315,7 +319,6 @@ class _StudentHomeScreenState extends State<StudentHomeScreen> {
                       ],
                     ),
                   ),
-                  // Progress bar
                   Positioned(
                     bottom: 0,
                     left: 0,

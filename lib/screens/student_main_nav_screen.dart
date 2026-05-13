@@ -15,18 +15,22 @@ class StudentMainNavScreen extends StatefulWidget {
 class _StudentMainNavScreenState extends State<StudentMainNavScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    StudentHomeScreen(),
-    WatchlistScreen(),
-    SearchScreen(),
-    SubmitScreen(),
-    ProfileScreen(),
-  ];
+  void _goToSearch() {
+    setState(() => _currentIndex = 2);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      StudentHomeScreen(onSearchTap: _goToSearch),
+      const WatchlistScreen(),
+      const SearchScreen(),
+      const SubmitScreen(),
+      const ProfileScreen(),
+    ];
+
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _screens),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Color(0xFF0D1F17),
